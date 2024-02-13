@@ -44,7 +44,7 @@ int main(int argc, char const *argv[])
     int newsize = 0;
     char* buffer = NULL;
     off_t size;
-    Node tmp, *top, *chart = NULL;
+    Node tmp, *chart = NULL;
 
     if ((infd = open(argv[2], O_RDONLY)) == -1)
     {   
@@ -79,17 +79,18 @@ int main(int argc, char const *argv[])
         qsort(chart, 256, sizeof(*chart), cmpfreqs);
         for (int i = 0; i < 256; i++)
         {
-        if (chart[i].freq != 0)
+            if (chart[i].freq != 0)
                 newsize++;
-            else 
-                break;
+            else break;
         }
+
+        // for testing
         for (int i = 0; i < newsize; i++)
-        {
             printf("%c\t%d\n", chart[i].c, chart[i].freq);
-        }
+
         // TODO: generate the binary tree
-        
+        for (i = newsize; i < 256; i++) // zeros out the rest
+            chart[i] = NULL;
     } else if (strcmp(argv[1], "-d") == 0)
     {
         // TODO: decode the text
