@@ -16,19 +16,20 @@ NOTE: both files must be in a .txt format
 #include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
-#include "s_linked_list.h"
 
-typedef struct Leaf
+typedef struct Node
 {
     char c;
     int freq;
     struct Node* left;
     struct Node* right;
-} Leaf;
+} Node;
 
 void usage(const char* arg0);
-// returns a linked list of sorted Leafs
-struct Node* freqs(char text[]);
+// counts the frequency of each ASCII character
+// and stores it in a 256-long array of Node's
+// to set up for the binary tree
+Node* freqs(char text[]);
 int cmpfreqs(const void* a, const void* b);
 
 int main(int argc, char const *argv[])
@@ -40,10 +41,10 @@ int main(int argc, char const *argv[])
     }
 
     int infd, outfd;
+    int newsize = 0;
     char* buffer = NULL;
     off_t size;
-    Leaf *temp, *chart = NULL;
-    struct Node *head;
+    Node tmp, *chart = NULL;
 
     if ((infd = open(argv[2], O_RDONLY)) == -1)
     {   
@@ -74,13 +75,22 @@ int main(int argc, char const *argv[])
 
     if (strcmp(argv[1], "-e") == 0)
     {
-        head = freqs(buffer);
+        chart = freqs(buffer);
+        qsort(chart, 256, sizeof(*chart), cmpfreqs);
+        for (int i = 0; i < 256; i++)
+        {
+            if (chart[i].freq != 0)
+                newsize++;
+            else break;
+        }
 
         // for testing
-        for (int i = 0; (temp = (Leaf*) indexNode(head, i)) != NULL; i++)
-        {
-            printf("%c\t%d\n", temp->c, temp->freq);
-        }
+        for (int i = 0; i < newsize; i++)
+            printf("%c\t%d\n", chart[i].c, chart[i].freq);
+
+        // TODO: generate the binary tree
+        for (i = newsize; i < 256; i++) // zeros out the rest
+            chart[i] = NULL;
     } else if (strcmp(argv[1], "-d") == 0)
     {
         // TODO: decode the text
@@ -89,7 +99,7 @@ int main(int argc, char const *argv[])
         return 0;
     }
 
-    close(outfd);
+    // close(outfd);
     return 0;
 }
 
@@ -101,12 +111,9 @@ void usage(const char* arg0)
     printf("NOTE: both files must be in .txt format\n");
 }
 
-struct Node* freqs(char text[])
+Node* freqs(char text[])
 {
-    int newsize = 0;
-    struct Node *head;
-
-    Leaf* chars = (Leaf*) malloc(sizeof(Leaf)*256);
+    Node* chars = (Node*) malloc(sizeof(Node)*256);
     // sets the priority queue in ascending ASCII codes
     for (int i = 0; i < 256; i++)
     {
@@ -123,28 +130,12 @@ struct Node* freqs(char text[])
                 chars[c].freq++;
                 break;
             }
-
-    qsort(chars, 256, sizeof(*chars), cmpfreqs);
-        for (int i = 0; i < 256; i++)
-        {
-            if (chars[i].freq != 0)
-                newsize++;
-            else break;
-        }
-
-        // TODO: generate the binary tree
-        head = (struct Node*) malloc(sizeof(struct Node));
-        head->val = NULL;
-        head->next = NULL;
-        for (int i = 0; i < newsize; i++)
-            addNodeEnd(head, &chars[i]);
-        
-        return head;
+    return chars;
 }
 
 int cmpfreqs(const void* a, const void* b)
 {
-    const Leaf x = *(const Leaf*) a;
-    const Leaf y = *(const Leaf*) b;
+    const Node x = *(const Node*) a;
+    const Node y = *(const Node*) b;
     return (x.freq < y.freq) - (x.freq > y.freq);
 }
