@@ -1,5 +1,3 @@
-// TODO:
-    // build binary tree from array of Node's
 /*
 USAGE: ./[exec] flags [input filename] [output filename]
 flags:
@@ -28,8 +26,11 @@ typedef struct Leaf
 
 void usage(const char* arg0);
 // returns a linked list of sorted Leafs
-struct Node* freqs(char text[]);
+struct Node *freqs(char text[]);
+//Leaf *buildTree(struct Node *head);
 int cmpfreqs(const void* a, const void* b);
+// cmp for linked list
+int cmpll(void *a, void *b);
 
 int main(int argc, char const *argv[])
 {
@@ -75,6 +76,12 @@ int main(int argc, char const *argv[])
     if (strcmp(argv[1], "-e") == 0)
     {
         head = freqs(buffer);
+
+        // testing
+        //temp = (Leaf*) malloc(sizeof(Leaf));
+        //temp->c = 'G';
+        //temp ->freq = 6;
+        //sortNode(head, temp, cmpll);
 
         // for testing
         for (int i = 0; (temp = (Leaf*) indexNode(head, i)) != NULL; i++)
@@ -124,27 +131,39 @@ struct Node* freqs(char text[])
                 break;
             }
 
+    // TODO: remove the sorting before-hand, probably not needed
     qsort(chars, 256, sizeof(*chars), cmpfreqs);
-        for (int i = 0; i < 256; i++)
-        {
-            if (chars[i].freq != 0)
-                newsize++;
-            else break;
-        }
+    for (int i = 0; i < 256; i++)
+    {
+        if (chars[i].freq != 0)
+            newsize++;
+        else break;
+    }
 
-        // TODO: generate the binary tree
-        head = (struct Node*) malloc(sizeof(struct Node));
-        head->val = NULL;
-        head->next = NULL;
-        for (int i = 0; i < newsize; i++)
-            addNodeEnd(head, &chars[i]);
-        
-        return head;
+    head = (struct Node*) malloc(sizeof(struct Node));
+    head->val = NULL;
+    head->next = NULL;
+    for (int i = 0; i < newsize; i++)
+        addNodeEnd(head, &chars[i]);
+      
+    return head;
 }
+
+//Leaf *buildTree(struct Node *head)
+//{
+//    
+//}
 
 int cmpfreqs(const void* a, const void* b)
 {
     const Leaf x = *(const Leaf*) a;
     const Leaf y = *(const Leaf*) b;
     return (x.freq < y.freq) - (x.freq > y.freq);
+}
+
+int cmpll(void *a, void *b)
+{
+    Leaf x = *(Leaf*) a;
+    Leaf y = *(Leaf*) b;
+    return (x.freq >= y.freq);
 }
